@@ -2,14 +2,14 @@
     "name": "PWAGram - new Instagram",
     "short_name": "PWAGram",
     "start_url": "/index.html",
-    "scope": ".",                                   // "." means all the files of public folder are part of the PWA
-    "display": "standalone",                        // "fullscreen" / "minimal-ui" / "browser" are also some of the options
-    "orientation": "portrait-primary",              // "any" / "landscape" / "portrait"
+    "scope": ".",
+    "display": "standalone",
+    "orientation": "portrait-primary",
     "background_color": "#fff",
     "theme_color": "#3F51B5",
     "description": "Description about the app",
-    "dir": "ltr",                                   // direction of text flow (Left to Right) - "rtl" is also one of the options
-    "lang": "en-US",                                // Main language of the app
+    "dir": "ltr",
+    "lang": "en-US",
     "icons": [
         {
             "src": "/src/images/icons/app-icon-48x48.png",
