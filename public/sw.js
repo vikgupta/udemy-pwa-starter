@@ -1,9 +1,12 @@
+var CACHE_STATIC_NAME = 'static-v4';
+var CACHE_DYNAMIC_NAME = 'dynamic-v3';
+
 self.addEventListener('install', evt => {
     console.log('[Service Worker] - installing service worker...', evt);
 
     // start caching objects - caches.open is async so we want it to wait for it to finish
     evt.waitUntil(
-        caches.open('static-v2')   // it returns a promise
+        caches.open(CACHE_STATIC_NAME)   // it returns a promise
         .then(cache => {
             // we are ready to add stuff to the cache
             console.log('[Service Worker] - Precaching app shell');
@@ -33,8 +36,8 @@ self.addEventListener('activate', evt => {
         .then(keys => {
             console.log(keys);
             return Promise.all(keys.map(key => {
-                if(key !== 'static-v2' && key !== 'dynamic') {
-                    console.log('[Service Worker] - Removing stale keys');
+                if(key !== CACHE_STATIC_NAME && key !== CACHE_DYNAMIC_NAME) {
+                    console.log('[Service Worker] - Removing stale key: ', key);
                     return caches.delete(key);
                 }
             }))
@@ -54,7 +57,7 @@ self.addEventListener('fetch', evt => {
 
             return fetch(evt.request)
             .then(res => {
-                return caches.open('dynamic')
+                return caches.open(CACHE_DYNAMIC_NAME)
                 .then(cache => {
                     cache.put(evt.request.url, res.clone());
                     return res;
