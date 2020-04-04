@@ -37,12 +37,20 @@ self.addEventListener('fetch', evt => {
         caches.match(evt.request)
         .then(response => {
             if(response) {
-                console.log('[Service Worker] - returning cached object');
                 return response;
             }
 
-            console.log('[Service Worker] - fetching object...', evt.request);
-            return fetch(evt.request);
+            return fetch(evt.request)
+            .then(res => {
+                return caches.open('dynamic')
+                .then(cache => {
+                    cache.put(evt.request.url, res.clone());
+                    return res;
+                })
+            })
+            .catch(err => {
+                // do nothing
+            });
         })
     );
 });
