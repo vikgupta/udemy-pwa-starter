@@ -3,7 +3,7 @@ self.addEventListener('install', evt => {
 
     // start caching objects - caches.open is async so we want it to wait for it to finish
     evt.waitUntil(
-        caches.open('static')   // it returns a promise
+        caches.open('static-v2')   // it returns a promise
         .then(cache => {
             // we are ready to add stuff to the cache
             console.log('[Service Worker] - Precaching app shell');
@@ -28,6 +28,18 @@ self.addEventListener('install', evt => {
 
 self.addEventListener('activate', evt => {
     console.log('[Service Worker] - activating service worker...', evt);
+    evt.waitUntil(
+        caches.keys()
+        .then(keys => {
+            console.log(keys);
+            return Promise.all(keys.map(key => {
+                if(key !== 'static-v2' && key !== 'dynamic') {
+                    console.log('[Service Worker] - Removing stale keys');
+                    return caches.delete(key);
+                }
+            }))
+        })
+    )
     return self.clients.claim();
 });
 
