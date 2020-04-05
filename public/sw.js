@@ -1,5 +1,5 @@
-var CACHE_STATIC_NAME = 'static-v4';
-var CACHE_DYNAMIC_NAME = 'dynamic-v3';
+var CACHE_STATIC_NAME = 'static';
+var CACHE_DYNAMIC_NAME = 'dynamic';
 
 self.addEventListener('install', evt => {
     console.log('[Service Worker] - installing service worker...', evt);
