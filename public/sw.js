@@ -13,6 +13,7 @@ self.addEventListener('install', evt => {
             cache.addAll([
                 '/',
                 '/index.html',
+                '/offline.html',
                 '/src/js/app.js',
                 '/src/js/feed.js',
                 '/src/js/promise.js',
@@ -64,7 +65,11 @@ self.addEventListener('fetch', evt => {
                 })
             })
             .catch(err => {
-                // do nothing
+                // show the default offline.html page
+                return caches.open(CACHE_STATIC_NAME)
+                .then(cache => {
+                    return cache.match('/offline.html');
+                })
             });
         })
     );
