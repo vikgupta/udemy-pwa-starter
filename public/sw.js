@@ -76,19 +76,61 @@ self.addEventListener('activate', evt => {
 // });
 
 // Network then cache strategy including dynamic caching
+// self.addEventListener('fetch', evt => {
+//     // fetch data from network first
+//     evt.respondWith(
+//         fetch(evt.request)
+//         .then(res => {
+//             return caches.open(CACHE_DYNAMIC_NAME)
+//             .then(cache => {
+//                 cache.put(evt.request.url, res.clone());
+//                 return res;
+//             })
+//         })
+//         .catch(err => {
+//             return caches.match(evt.request)
+//         })
+//     );
+// });
+
+// Cache then network including dynamic caching
 self.addEventListener('fetch', evt => {
-    // fetch data from network first
-    evt.respondWith(
-        fetch(evt.request)
-        .then(res => {
-            return caches.open(CACHE_DYNAMIC_NAME)
+    var url = 'https://httpbin.org/get';
+    if(evt.request.url.indexOf(url) > -1) {
+        evt.respondWith(
+            caches.open(CACHE_DYNAMIC_NAME)
             .then(cache => {
-                cache.put(evt.request.url, res.clone());
-                return res;
+                return fetch(evt.request)
+                .then(response => {
+                    cache.put(evt.request, response.clone());
+                    return response;
+                });
             })
-        })
-        .catch(err => {
-            return caches.match(evt.request)
-        })
-    );
+        )
+    } else {
+        evt.respondWith(
+            caches.match(evt.request)
+            .then(response => {
+                if(response) {
+                    return response;
+                }
+
+                return fetch(evt.request)
+                .then(res => {
+                    return caches.open(CACHE_DYNAMIC_NAME)
+                    .then(cache => {
+                        cache.put(evt.request.url, res.clone());
+                        return res;
+                    })
+                })
+                .catch(err => {
+                    // show the default offline.html page
+                    return caches.open(CACHE_STATIC_NAME)
+                    .then(cache => {
+                        return cache.match('/offline.html');
+                    })
+                });
+            })
+        );
+    }
 });
