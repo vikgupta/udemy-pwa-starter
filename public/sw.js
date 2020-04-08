@@ -1,6 +1,23 @@
 var CACHE_STATIC_NAME = 'static';
 var CACHE_DYNAMIC_NAME = 'dynamic';
 
+var CACHE_STATIC_LIST = [
+    '/',
+    '/index.html',
+    '/offline.html',
+    '/src/js/app.js',
+    '/src/js/feed.js',
+    '/src/js/promise.js',
+    '/src/js/fetch.js',
+    '/src/js/material.min.js',
+    '/src/css/app.css',
+    '/src/css/feed.css',
+    '/src/images/main-image.jpg',
+    'https://fonts.googleapis.com/css?family=Roboto:400,700',
+    'https://fonts.googleapis.com/icon?family=Material+Icons',
+    'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
+];
+
 self.addEventListener('install', evt => {
     console.log('[Service Worker] - installing service worker...', evt);
 
@@ -10,22 +27,7 @@ self.addEventListener('install', evt => {
         .then(cache => {
             // we are ready to add stuff to the cache
             console.log('[Service Worker] - Precaching app shell');
-            cache.addAll([
-                '/',
-                '/index.html',
-                '/offline.html',
-                '/src/js/app.js',
-                '/src/js/feed.js',
-                '/src/js/promise.js',
-                '/src/js/fetch.js',
-                '/src/js/material.min.js',
-                'src/css/app.css',
-                'src/css/feed.css',
-                '/src/images/main-image.jpg',
-                'https://fonts.googleapis.com/css?family=Roboto:400,700',
-                'https://fonts.googleapis.com/icon?family=Material+Icons',
-                'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
-            ]);
+            cache.addAll(CACHE_STATIC_LIST);
         })
     );
 });
@@ -97,6 +99,7 @@ self.addEventListener('activate', evt => {
 self.addEventListener('fetch', evt => {
     var url = 'https://httpbin.org/get';
     if(evt.request.url.indexOf(url) > -1) {
+        // Let's have 'network -> then put in cache (but do not fetch from cache)' strategy for the URL that is required for feed.js
         evt.respondWith(
             caches.open(CACHE_DYNAMIC_NAME)
             .then(cache => {
@@ -107,7 +110,15 @@ self.addEventListener('fetch', evt => {
                 });
             })
         )
+    } else if (new RegExp('\\b' + CACHE_STATIC_LIST.join('\\b|\\b') + '\\b').test(evt.request)) {
+        // Let's have 'cache only strategy' since app shell and basic assets will always be cached
+        console.log('RegEx Matched for - ', evt.request.url)
+        evt.respondWith(
+            caches.match(evt.request)
+        );
     } else {
+        // Let's have 'fetch from cache -> go to network if not found in cache -> store in cache if network call successful'
+        // strategy for the other assets / pages
         evt.respondWith(
             caches.match(evt.request)
             .then(response => {
