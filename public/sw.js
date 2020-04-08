@@ -127,7 +127,9 @@ self.addEventListener('fetch', evt => {
                     // show the default offline.html page
                     return caches.open(CACHE_STATIC_NAME)
                     .then(cache => {
-                        return cache.match('/offline.html');
+                        if(evt.request.url.indexOf('/help')) {
+                            return cache.match('/offline.html');
+                        }
                     })
                 });
             })
