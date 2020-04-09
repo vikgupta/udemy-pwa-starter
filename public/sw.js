@@ -123,7 +123,12 @@ self.addEventListener('fetch', evt => {
             .then(response => {
                 // Use the indexeddb to store the data
                 var clonedResponse = response.clone();
-                clonedResponse.json()
+
+                // Let's clear the cached data before creating new, since data in backend db would have changed
+                clearAllData('posts')
+                .then(() => {
+                    return clonedResponse.json();
+                })
                 .then(data => {
                     for(var key in data) {
                         writeData('posts', data[key]);

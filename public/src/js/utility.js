@@ -24,3 +24,13 @@ const readAllData = storeName => {
         return store.getAll();
     });
 }
+
+const clearAllData = storeName => {
+    return dbPromise
+    .then(db => {
+        var tx = db.transaction(storeName, 'readwrite');
+        var store = tx.objectStore(storeName);
+        store.clear();
+        return tx.complete;
+    });
+}
