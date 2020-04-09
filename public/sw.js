@@ -110,7 +110,7 @@ self.addEventListener('activate', evt => {
 
 // Cache then network including dynamic caching
 self.addEventListener('fetch', evt => {
-    var url = 'https://httpbin.org/get';
+    var url = 'https://pwagram-44966.firebaseio.com/posts.json';
     if(evt.request.url.indexOf(url) > -1) {
         // Let's have 'network -> then put in cache (but do not fetch from cache)' strategy for the URL that is required for feed.js
         evt.respondWith(
