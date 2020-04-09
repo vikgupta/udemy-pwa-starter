@@ -132,6 +132,9 @@ self.addEventListener('fetch', evt => {
                 .then(data => {
                     for(var key in data) {
                         writeData('posts', data[key]);
+                        // .then(() => {
+                        //     deleteItemFromStore('posts', key);  // Just for testing - will be commented out after testing
+                        // });
                     }
                 })
 
