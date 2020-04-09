@@ -1,3 +1,6 @@
+importScripts('/src/js/idb.js');
+importScripts('/src/js/utility.js');
+
 var CACHE_STATIC_NAME = 'static';
 var CACHE_DYNAMIC_NAME = 'dynamic';
 
@@ -7,6 +10,8 @@ var CACHE_STATIC_LIST = [
     '/offline.html',
     '/src/js/app.js',
     '/src/js/feed.js',
+    '/src/js/idb.js',
+    '/src/js/utility.js',
     '/src/js/promise.js',
     '/src/js/fetch.js',
     '/src/js/material.min.js',
@@ -18,18 +23,18 @@ var CACHE_STATIC_LIST = [
     'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
 ];
 
-const trimCache = (cacheName, maxItems) => {
-    caches.open(cacheName)
-    .then(cache => {
-        cache.keys()
-        .then(keys => {
-            if(keys.length > maxItems) {
-                cache.delete(keys[0])
-                .then(trimCache(cacheName, maxItems))
-            }
-        })
-    })
-}
+// const trimCache = (cacheName, maxItems) => {
+//     caches.open(cacheName)
+//     .then(cache => {
+//         cache.keys()
+//         .then(keys => {
+//             if(keys.length > maxItems) {
+//                 cache.delete(keys[0])
+//                 .then(trimCache(cacheName, maxItems))
+//             }
+//         })
+//     })
+// }
 
 self.addEventListener('install', evt => {
     console.log('[Service Worker] - installing service worker...', evt);
@@ -114,18 +119,20 @@ self.addEventListener('fetch', evt => {
     if(evt.request.url.indexOf(url) > -1) {
         // Let's have 'network -> then put in cache (but do not fetch from cache)' strategy for the URL that is required for feed.js
         evt.respondWith(
-            caches.open(CACHE_DYNAMIC_NAME)
-            .then(cache => {
-                return fetch(evt.request)
-                .then(response => {
-                    // trim the cache before adding the new key-value pair
-                    trimCache(CACHE_DYNAMIC_NAME, 4);
+            fetch(evt.request)
+            .then(response => {
+                // Use the indexeddb to store the data
+                var clonedResponse = response.clone();
+                clonedResponse.json()
+                .then(data => {
+                    for(var key in data) {
+                        writeData('posts', data[key]);
+                    }
+                })
 
-                    cache.put(evt.request, response.clone());
-                    return response;
-                });
+                return response;
             })
-        )
+        );
     } else if (new RegExp('\\b' + CACHE_STATIC_LIST.join('\\b|\\b') + '\\b').test(evt.request)) {
         // Let's have 'cache only strategy' since app shell and basic assets will always be cached
         console.log('RegEx Matched for - ', evt.request.url)
@@ -147,7 +154,7 @@ self.addEventListener('fetch', evt => {
                     return caches.open(CACHE_DYNAMIC_NAME)
                     .then(cache => {
                         // trim the cache before adding the new key-value pair
-                        trimCache(CACHE_DYNAMIC_NAME, 4);
+                        //trimCache(CACHE_DYNAMIC_NAME, 4);
 
                         cache.put(evt.request.url, res.clone());
                         return res;

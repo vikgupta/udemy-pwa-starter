@@ -94,6 +94,7 @@ fetch(url)
 })
 .then(function(data) {
   networkDataReceived = true;
+  console.log('From Web - ', data);
 
   // convert object to array
   var dataArray = [];
@@ -103,21 +104,13 @@ fetch(url)
   updateUI(dataArray);
 });
 
-// Refer the cache
-if('caches' in window) {
-  caches.match(url)
-  .then(response => {
-    if(response) {
-      return response.json();
-    }
-  })
+// Refer the indexedDB
+if('indexedDB' in window) {
+  readAllData('posts')
   .then(data => {
     if(!networkDataReceived) {
-      var dataArray = [];
-      for(var key in data) {
-        dataArray.push(data[key]);
-      }
-      updateUI(dataArray);
+      console.log('From Cache - ', data);
+      updateUI(data);
     }
   })
 }
