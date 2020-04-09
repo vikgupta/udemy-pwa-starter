@@ -18,6 +18,19 @@ var CACHE_STATIC_LIST = [
     'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
 ];
 
+const trimCache = (cacheName, maxItems) => {
+    caches.open(cacheName)
+    .then(cache => {
+        cache.keys()
+        .then(keys => {
+            if(keys.length > maxItems) {
+                cache.delete(keys[0])
+                .then(trimCache(cacheName, maxItems))
+            }
+        })
+    })
+}
+
 self.addEventListener('install', evt => {
     console.log('[Service Worker] - installing service worker...', evt);
 
@@ -105,6 +118,9 @@ self.addEventListener('fetch', evt => {
             .then(cache => {
                 return fetch(evt.request)
                 .then(response => {
+                    // trim the cache before adding the new key-value pair
+                    trimCache(CACHE_DYNAMIC_NAME, 4);
+
                     cache.put(evt.request, response.clone());
                     return response;
                 });
@@ -130,6 +146,9 @@ self.addEventListener('fetch', evt => {
                 .then(res => {
                     return caches.open(CACHE_DYNAMIC_NAME)
                     .then(cache => {
+                        // trim the cache before adding the new key-value pair
+                        trimCache(CACHE_DYNAMIC_NAME, 4);
+
                         cache.put(evt.request.url, res.clone());
                         return res;
                     })
