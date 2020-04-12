@@ -1,8 +1,12 @@
 var dbPromise = idb.open('posts-store', 1, db => {
+    // store for caching posts data
     if(!db.objectStoreNames.contains('posts')) {
-        db.createObjectStore('posts', {
-            keyPath: 'id'
-        });
+        db.createObjectStore('posts', { keyPath: 'id' });
+    }
+
+    // store for caching new posts till it is sent successfully
+    if(!db.objectStoreNames.contains('sync-posts')) {
+        db.createObjectStore('sync-posts', { keyPath: 'id' });
     }
 });
 

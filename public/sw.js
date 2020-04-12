@@ -181,3 +181,36 @@ self.addEventListener('fetch', evt => {
         );
     }
 });
+
+self.addEventListener('sync', (evt) => {
+    console.log('[Service Worker] Background syncing')
+    if(evt.tag === 'sync-new-posts') {
+        console.log('[Service Worker] Syncing new post');
+        evt.waitUntil(
+            readAllData('sync-posts')
+            .then(data => {
+                for( var dt of data) {
+                    fetch('https://pwagram-44966.firebaseio.com/posts.json', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(dt)
+                    })
+                    .then(response => {
+                        console.log('[Service Worker] Data sync response - ', response);
+
+                        // remove the data from DB
+                        if(response.ok) {
+                            deleteItemFromStore('sync-posts', dt.id);
+                        }
+                    })
+                    .catch(err => {
+                        console.log('[Service Worker] error while syncing data - ', err);
+                    })
+                }
+            })
+        );
+    }
+})

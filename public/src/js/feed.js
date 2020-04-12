@@ -2,6 +2,9 @@ var shareImageButton = document.querySelector('#share-image-button');
 var createPostArea = document.querySelector('#create-post');
 var closeCreatePostModalButton = document.querySelector('#close-create-post-modal-btn');
 var sharedMomentsArea = document.querySelector('#shared-moments');
+var form = document.querySelector('form');
+var titleInput = document.querySelector('#title');
+var locationInput = document.querySelector('#location');
 
 function openCreatePostModal() {
   //createPostArea.style.display = 'block';
@@ -118,3 +121,65 @@ if('indexedDB' in window) {
   })
 }
 
+const sendData = () => {
+  fetch('https://pwagram-44966.firebaseio.com/posts.json', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+      id: new Date().toISOString(),
+      title: titleInput.value,
+      location: locationInput.value,
+      image: "https://firebasestorage.googleapis.com/v0/b/pwagram-44966.appspot.com/o/sf-boat.jpg?alt=media&token=9bbcd33c-a7a1-4d2a-accc-4ba8bd26d1cf"
+    })
+  })
+  .then(response => {
+    console.log('Send Data response - ', response);
+    //updateUI();
+  })
+}
+
+form.addEventListener('submit', evt => {
+  evt.preventDefault();
+
+  // check if form has data
+  if(titleInput.value.trim() === '' || locationInput.value.trim() === '') {
+    alert('Title or location is empty!');
+    return;
+  }
+
+  // close the modal
+  closeCreatePostModal();
+
+  // Register sw for syncing
+  if('ServiceWorker' in window && 'SyncManager' in window) {
+    navigator.serviceWorker.ready
+    .then(sw => {
+      var post = {
+        id: new Date().toISOString(),
+        title: titleInput.value,
+        location: locationInput.value,
+        image: "https://firebasestorage.googleapis.com/v0/b/pwagram-44966.appspot.com/o/sf-boat.jpg?alt=media&token=9bbcd33c-a7a1-4d2a-accc-4ba8bd26d1cf"
+      };
+
+      // write data to IndexedDB
+      writeData('sync-posts', post)
+      .then(() => {
+        return sw.sync.register('sync-new-posts');
+      })
+      .then(() => {
+        var snackbarContainer = document.querySelector('#confirmation-toast');
+        var data = {message: 'Your Post Has Been Saved For Syncing'};
+        snackbarContainer.MaterialSnackbar.showSnackbar(data);
+      })
+      .catch(err => {
+        console.log('[Feed] Error in writeData - ', err);
+      })
+    })
+  } else {
+    // Service worker or SyncManager is not supported
+    sendData();
+  }
+})
