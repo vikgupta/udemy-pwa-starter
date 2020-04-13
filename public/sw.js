@@ -190,7 +190,7 @@ self.addEventListener('sync', (evt) => {
             readAllData('sync-posts')
             .then(data => {
                 for( var dt of data) {
-                    fetch('https://pwagram-44966.firebaseio.com/posts.json', {
+                    fetch('https://us-central1-pwagram-44966.cloudfunctions.net/storePostData', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -203,7 +203,10 @@ self.addEventListener('sync', (evt) => {
 
                         // remove the data from DB
                         if(response.ok) {
-                            deleteItemFromStore('sync-posts', dt.id);
+                            response.json()
+                            .then(respData => {
+                                deleteItemFromStore('sync-posts', respData.id);
+                            })
                         }
                     })
                     .catch(err => {
