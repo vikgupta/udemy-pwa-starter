@@ -29,7 +29,13 @@ const displayConfirmNotification = () => {
     navigator.serviceWorker.ready
     .then(swreg => {
       var options = {
-        body: 'You successfully subscribed to the PWAGram notifications'
+        body: 'You successfully subscribed to the PWAGram notifications',
+        icon: '/src/images/icons/app-icon-96x96.png',
+        image: '/src/images/sf-boat.jpg',
+        dir: 'ltr', // direction is left to right
+        lang: 'en-US',
+        vibrate: [100, 50, 200],
+        badge: '/src/images/icons/app-icon-96x96.png'
       };
       swreg.showNotification('Successfully subscribed', options);
     })
