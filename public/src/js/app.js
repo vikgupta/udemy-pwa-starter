@@ -23,6 +23,13 @@ window.addEventListener('beforeinstallprompt', function(event) {
   return false;
 });
 
+const displayConfirmNotification = () => {
+  var options = {
+    body: 'You successfully subscribed to the PWAGram notifications'
+  };
+  new Notification('Successfully subscribed', options);
+}
+
 const askForNotificationPermission = () => {
   Notification.requestPermission(result => {
     console.log('User chose to - ', result);
@@ -30,6 +37,7 @@ const askForNotificationPermission = () => {
       console.log('User denied notifications')
     } else {
       // display the notification
+      displayConfirmNotification();
     }
   })
 }
