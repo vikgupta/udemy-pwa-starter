@@ -24,10 +24,22 @@ window.addEventListener('beforeinstallprompt', function(event) {
 });
 
 const displayConfirmNotification = () => {
-  var options = {
-    body: 'You successfully subscribed to the PWAGram notifications'
-  };
-  new Notification('Successfully subscribed', options);
+  if ('serviceWorker' in navigator) {
+    // use service worker for showing notifications
+    navigator.serviceWorker.ready
+    .then(swreg => {
+      var options = {
+        body: 'You successfully subscribed to the PWAGram notifications'
+      };
+      swreg.showNotification('Successfully subscribed', options);
+    })
+  } else {
+    // No service worker support, show direct; though not of much use since it would mean no 'push' support
+    var options = {
+      body: 'You successfully subscribed to the PWAGram notifications'
+    };
+    new Notification('Successfully subscribed', options);
+  }
 }
 
 const askForNotificationPermission = () => {
