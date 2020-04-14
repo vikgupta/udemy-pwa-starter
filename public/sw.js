@@ -235,3 +235,40 @@ self.addEventListener('notificationclick', (evt) => {
 self.addEventListener('notificationclose', (evt) => {
     console.log('[Service Worker] Notification was closed - ', evt);
 })
+
+self.addEventListener('push', evt => {
+    console.log('Push notification received');
+
+    var data = {title: 'New', content: 'Something happened!'};
+    if(evt.data) {
+        data = JSON.parse(evt.data.text());
+    }
+
+    var options = {
+        body: data.content,
+        icon: '/src/images/icons/app-icon-96x96.png',
+        image: '/src/images/sf-boat.jpg',
+        dir: 'ltr', // direction is left to right
+        lang: 'en-US',
+        vibrate: [100, 50, 200],
+        badge: '/src/images/icons/app-icon-96x96.png',
+        tag: 'confirm-notification',
+        renotify: true,
+        actions: [
+          {
+            action: 'confirm',
+            title: 'OK',
+            icon: '/src/images/icons/app-icon-96x96.png'
+          },
+          {
+            action: 'cancel',
+            title: 'Cancel',
+            icon: '/src/images/icons/app-icon-96x96.png'
+          }
+        ]
+    }
+
+    evt.waitUntil(
+        self.registration.showNotification(data.title, options)
+    )
+})
