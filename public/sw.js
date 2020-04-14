@@ -217,3 +217,21 @@ self.addEventListener('sync', (evt) => {
         );
     }
 })
+
+self.addEventListener('notificationclick', (evt) => {
+    var notification = evt.notification;
+    var action = evt.action;
+    console.log('[Service Worker] notification is - ', notification);
+    if(action === 'confirm') {
+        console.log('Confirm was chosen');
+    } else if (action === 'cancel') {
+        console.log('Cancel was chosen');
+    }
+
+    // Better to close the notification since on some OSes, it's not done by default
+    notification.close();
+})
+
+self.addEventListener('notificationclose', (evt) => {
+    console.log('[Service Worker] Notification was closed - ', evt);
+})
