@@ -62,6 +62,48 @@ const displayConfirmNotification = () => {
   }
 }
 
+const configurePushSub = () => {
+  if ('serviceWorker' in navigator) {
+    var reg;
+    navigator.serviceWorker.ready
+    .then(swreg => {
+      reg = swreg;
+      return swreg.pushManager.getSubscription();
+    })
+    .then(sub => {
+      if(sub === null) {
+        // create new subscription
+        var vapidPublicKey = 'BIzt5vXN9rK9i3fnpA5Zf-t_j1tUXiE_fxetG2qW38g-PGz7NegRaVza0hkjcc8441t353EeUaTAWnaqLdCmhwI';
+        var convertedVapidPublicKey = urlBase64ToUint8Array(vapidPublicKey);
+        return reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidPublicKey
+        });
+      } else {
+        // we have a subscription
+      }
+    })
+    .then(newSub => {
+      return fetch('https://pwagram-44966.firebaseio.com/subscriptions.json', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(newSub)
+      })
+    })
+    .then(res => {
+      if(res.ok) {
+        displayConfirmNotification();
+      }
+    })
+    .catch(err => {
+      console.log('Error is - ', err);
+    })
+  }
+}
+
 const askForNotificationPermission = () => {
   Notification.requestPermission(result => {
     console.log('User chose to - ', result);
@@ -69,7 +111,9 @@ const askForNotificationPermission = () => {
       console.log('User denied notifications')
     } else {
       // display the notification
-      displayConfirmNotification();
+      //displayConfirmNotification();
+
+      configurePushSub();
     }
   })
 }
