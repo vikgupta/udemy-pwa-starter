@@ -221,11 +221,26 @@ self.addEventListener('sync', (evt) => {
 self.addEventListener('notificationclick', (evt) => {
     var notification = evt.notification;
     var action = evt.action;
-    console.log('[Service Worker] notification is - ', notification);
     if(action === 'confirm') {
         console.log('Confirm was chosen');
     } else if (action === 'cancel') {
         console.log('Cancel was chosen');
+        evt.waitUntil(
+            clients.matchAll()
+            .then(clis => {
+                var client = clis.find(c => {
+                    return c.visibilityState === 'visible';
+                })
+
+                console.log('Client is - ', client);
+                if(client !== undefined) {
+                    client.navigate(notification.data.url);
+                    client.focus();
+                } else {
+                    clients.openWindow(notification.data.url);
+                }
+            })
+        )
     }
 
     // Better to close the notification since on some OSes, it's not done by default
@@ -239,7 +254,7 @@ self.addEventListener('notificationclose', (evt) => {
 self.addEventListener('push', evt => {
     console.log('Push notification received');
 
-    var data = {title: 'New', content: 'Something happened!'};
+    var data = {title: 'New', content: 'Something happened!', openUrl: '/'};
     if(evt.data) {
         data = JSON.parse(evt.data.text());
     }
@@ -265,7 +280,10 @@ self.addEventListener('push', evt => {
             title: 'Cancel',
             icon: '/src/images/icons/app-icon-96x96.png'
           }
-        ]
+        ],
+        data: {
+            url: data.openUrl
+        }
     }
 
     evt.waitUntil(
