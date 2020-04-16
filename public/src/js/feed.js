@@ -5,10 +5,45 @@ var sharedMomentsArea = document.querySelector('#shared-moments');
 var form = document.querySelector('form');
 var titleInput = document.querySelector('#title');
 var locationInput = document.querySelector('#location');
+var videoPlayer = document.querySelector('#video');
+var canvas = document.querySelector('#canvas');
+var imageCaptureBtn = document.querySelector('#capture-btn');
+var imagePicker = document.querySelector('#image-picker');
+var imagePickerArea = document.querySelector('#pick-image');
+
+const initializeMedia = () => {
+  if(!('mediaDevices' in navigator)) {
+    navigator.mediaDevices = {};  // for browsers that don't support the mediaDevices
+  }
+
+  if(!('getUserMedia' in navigator.mediaDevices)) {
+    navigator.mediaDevices.getUserMedia = constraints => {
+      var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+      if(!getUserMedia) {
+        return Promise.reject(new Error('getUserMedia is not implemented'));
+      }
+
+      return new Promise((resolve, reject) => {
+        getUserMedia.call(navigatior, constraints, resolve, reject)
+      })
+    }
+  }
+
+  navigator.mediaDevices.getUserMedia({video: true})
+  .then(stream => {
+    videoPlayer.srcObject = stream;
+    videoPlayer.style.display = 'block';
+  })
+  .catch(err => {
+    console.log('Error in getUserMedia - ', err);
+    imagePickerArea.style.display = 'block';
+  })
+}
 
 function openCreatePostModal() {
   //createPostArea.style.display = 'block';
   createPostArea.style.transform = 'translateY(0)';
+  initializeMedia();
   
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -30,6 +65,9 @@ function openCreatePostModal() {
 function closeCreatePostModal() {
   //createPostArea.style.display = 'none';
   createPostArea.style.transform = 'translateY(100vh)';
+  videoPlayer.style.display = 'none';
+  imagePickerArea.style.display = 'none';
+  canvas.style.display = 'none';
 }
 
 // To demonstrate the cache on demand feature - not in use unless save button is enabled
