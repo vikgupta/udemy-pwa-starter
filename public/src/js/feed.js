@@ -10,6 +10,7 @@ var canvasElement = document.querySelector('#canvas');
 var imageCaptureBtn = document.querySelector('#capture-btn');
 var imagePicker = document.querySelector('#image-picker');
 var imagePickerArea = document.querySelector('#pick-image');
+var picture;
 
 const initializeMedia = () => {
   if(!('mediaDevices' in navigator)) {
@@ -52,7 +53,11 @@ imageCaptureBtn.addEventListener('click', (evt) => {
     videoPlayer.videoHeight / (videoPlayer.videoWidth / canvas.width)
   );
 
+  // Stop the camera
   videoPlayer.srcObject.getVideoTracks().forEach( track => track.stop());
+
+  // get the picture blob
+  picture = dataURItoBlob(canvasElement.toDataURL());
 })
 
 function openCreatePostModal() {
@@ -175,18 +180,16 @@ if('indexedDB' in window) {
 }
 
 const sendData = () => {
+  var id = new Date().toISOString();
+  var postData = new FormData();
+  postData.append('id', id);
+  postData.append('title', titleInput.value);
+  postData.append('location', locationInput.value);
+  postData.append('image', picture, id + '.png');
+
   fetch('https://us-central1-pwagram-44966.cloudfunctions.net/storePostData', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
-    body: JSON.stringify({
-      id: new Date().toISOString(),
-      title: titleInput.value,
-      location: locationInput.value,
-      image: "https://firebasestorage.googleapis.com/v0/b/pwagram-44966.appspot.com/o/sf-boat.jpg?alt=media&token=9bbcd33c-a7a1-4d2a-accc-4ba8bd26d1cf"
-    })
+    body: postData
   })
   .then(response => {
     console.log('Send Data response - ', response);
@@ -214,7 +217,7 @@ form.addEventListener('submit', evt => {
         id: new Date().toISOString(),
         title: titleInput.value,
         location: locationInput.value,
-        image: "https://firebasestorage.googleapis.com/v0/b/pwagram-44966.appspot.com/o/sf-boat.jpg?alt=media&token=9bbcd33c-a7a1-4d2a-accc-4ba8bd26d1cf"
+        picture: picture
       };
 
       // write data to IndexedDB

@@ -190,13 +190,15 @@ self.addEventListener('sync', (evt) => {
             readAllData('sync-posts')
             .then(data => {
                 for( var dt of data) {
+                    var postData = new FormData();
+                    postData.append('id', dt.id);
+                    postData.append('title', dt.title);
+                    postData.append('location', dt.location);
+                    postData.append('image', dt.picture, dt.id + '.png');
+
                     fetch('https://us-central1-pwagram-44966.cloudfunctions.net/storePostData', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(dt)
+                        body: postData
                     })
                     .then(response => {
                         console.log('[Service Worker] Data sync response - ', response);
@@ -223,8 +225,6 @@ self.addEventListener('notificationclick', (evt) => {
     var action = evt.action;
     if(action === 'confirm') {
         console.log('Confirm was chosen');
-    } else if (action === 'cancel') {
-        console.log('Cancel was chosen');
         evt.waitUntil(
             clients.matchAll()
             .then(clis => {
@@ -240,7 +240,9 @@ self.addEventListener('notificationclick', (evt) => {
                     clients.openWindow(notification.data.url);
                 }
             })
-        )
+        );
+    } else if (action === 'cancel') {
+        console.log('Cancel was chosen');
     }
 
     // Better to close the notification since on some OSes, it's not done by default

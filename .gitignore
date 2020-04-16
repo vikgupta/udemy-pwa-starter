@@ -3,4 +3,4 @@ node_modules
 package-lock.json
 firebase-admin-key.json
 *.log
-.firebase/*.cache
+.firebase/*
