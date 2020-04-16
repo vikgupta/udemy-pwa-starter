@@ -6,7 +6,7 @@ var form = document.querySelector('form');
 var titleInput = document.querySelector('#title');
 var locationInput = document.querySelector('#location');
 var videoPlayer = document.querySelector('#video');
-var canvas = document.querySelector('#canvas');
+var canvasElement = document.querySelector('#canvas');
 var imageCaptureBtn = document.querySelector('#capture-btn');
 var imagePicker = document.querySelector('#image-picker');
 var imagePickerArea = document.querySelector('#pick-image');
@@ -40,6 +40,21 @@ const initializeMedia = () => {
   })
 }
 
+imageCaptureBtn.addEventListener('click', (evt) => {
+  canvasElement.style.display = 'block';
+  videoPlayer.style.display = 'none';
+  imageCaptureBtn.style.display = 'none';
+  var context = canvasElement.getContext('2d');
+  context.drawImage(
+    videoPlayer, 
+    0, 0, 
+    canvas.width, 
+    videoPlayer.videoHeight / (videoPlayer.videoWidth / canvas.width)
+  );
+
+  videoPlayer.srcObject.getVideoTracks().forEach( track => track.stop());
+})
+
 function openCreatePostModal() {
   //createPostArea.style.display = 'block';
   createPostArea.style.transform = 'translateY(0)';
@@ -67,7 +82,7 @@ function closeCreatePostModal() {
   createPostArea.style.transform = 'translateY(100vh)';
   videoPlayer.style.display = 'none';
   imagePickerArea.style.display = 'none';
-  canvas.style.display = 'none';
+  canvasElement.style.display = 'none';
 }
 
 // To demonstrate the cache on demand feature - not in use unless save button is enabled
