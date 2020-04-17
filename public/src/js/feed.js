@@ -11,6 +11,42 @@ var imageCaptureBtn = document.querySelector('#capture-btn');
 var imagePicker = document.querySelector('#image-picker');
 var imagePickerArea = document.querySelector('#pick-image');
 var picture;
+var locationButton = document.querySelector('#location-btn');
+var spinner = document.querySelector('#location-loader');
+var fetchedLocation;
+
+const initializeLocation = () => {
+  if(!('geolocation' in navigator)) {
+    locationButton.style.display = 'none';
+  }
+}
+
+locationButton.addEventListener('click', (evt) => {
+  locationButton.style.display = 'none';
+  spinner.style.display = 'block';
+
+  navigator.geolocation.getCurrentPosition(pos => {
+    locationButton.style.display = 'inline';
+    spinner.style.display = 'none';
+    fetchedLocation = {
+      lat: pos.coords.latitude,
+      long: pos.coords.longitude
+    };  // can use google maps apis can be used to get the location
+    locationInput.value = 'Delhi';
+    document.querySelector('#manual-location').classList.add('is-focused');
+  }, err => {
+    console.log('Error in geolocation - ', err);
+    locationButton.style.display = 'inline';
+    spinner.style.display = 'none';
+    alert('Couldn\'t get the location, enter manually');
+    fetchedLocation = {
+      lat: null,
+      long: null
+    };
+  }, {
+    timeout: 5000
+  });
+})
 
 const initializeMedia = () => {
   if(!('mediaDevices' in navigator)) {
@@ -67,7 +103,12 @@ imagePicker.addEventListener('change', (evt) => {
 function openCreatePostModal() {
   //createPostArea.style.display = 'block';
   createPostArea.style.transform = 'translateY(0)';
+
+  // initialize the camera access
   initializeMedia();
+
+  // initialize the location access
+  initializeLocation();
   
   if (deferredPrompt) {
     deferredPrompt.prompt();
@@ -92,6 +133,8 @@ function closeCreatePostModal() {
   videoPlayer.style.display = 'none';
   imagePickerArea.style.display = 'none';
   canvasElement.style.display = 'none';
+  locationButton.style.display = 'inline';
+  spinner.style.display = 'none';
 }
 
 // To demonstrate the cache on demand feature - not in use unless save button is enabled
@@ -189,6 +232,8 @@ const sendData = () => {
   postData.append('id', id);
   postData.append('title', titleInput.value);
   postData.append('location', locationInput.value);
+  postData.append('lat', fetchedLocation.lat);
+  postData.append('long', fetchedLocation.long);
   postData.append('image', picture, id + '.png');
 
   fetch('https://us-central1-pwagram-44966.cloudfunctions.net/storePostData', {
@@ -221,7 +266,8 @@ form.addEventListener('submit', evt => {
         id: new Date().toISOString(),
         title: titleInput.value,
         location: locationInput.value,
-        picture: picture
+        picture: picture,
+        rawLocation: fetchedLocation
       };
 
       // write data to IndexedDB
