@@ -4,6 +4,9 @@ importScripts('/src/js/utility.js');
 
 const workboxSW = new self.WorkboxSW();
 
+const CACHE_STATIC_NAME = 'static';
+const CACHE_DYNAMIC_NAME = 'dynamic';
+
 // We should use this file to add functionality to the service worker generated using workbox
 
 // Caching google fonts
@@ -38,7 +41,7 @@ workboxSW.router.registerRoute(
 workboxSW.router.registerRoute(
     "https://pwagram-44966.firebaseio.com/posts.json", 
     args => {
-        return fetch(args.evt.request)
+        return fetch(args.event.request)
         .then(response => {
             // Use the indexeddb to store the data
             var clonedResponse = response.clone();
@@ -58,6 +61,37 @@ workboxSW.router.registerRoute(
             })
 
             return response;
+        })
+    }
+);
+
+// Showing custom offline screen for trying to access offline html page
+workboxSW.router.registerRoute(
+    routeData => {
+        return routeData.event.request.headers.get('accept').includes('text/html')
+    }, 
+    args => {
+        return caches.match(args.event.request)
+        .then(response => {
+            if(response) {
+                return response;
+            }
+
+            return fetch(args.event.request)
+            .then(res => {
+                return caches.open(CACHE_DYNAMIC_NAME)
+                .then(cache => {
+                    cache.put(args.event.request.url, res.clone());
+                    return res;
+                })
+            })
+            .catch(err => {
+                // show the default offline.html page
+                return caches.match('/offline.html')
+                .then(response => {
+                    return response;
+                })
+            });
         })
     }
 );

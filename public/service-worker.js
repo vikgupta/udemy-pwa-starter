@@ -4,6 +4,9 @@ importScripts('/src/js/utility.js');
 
 const workboxSW = new self.WorkboxSW();
 
+const CACHE_STATIC_NAME = 'static';
+const CACHE_DYNAMIC_NAME = 'dynamic';
+
 // We should use this file to add functionality to the service worker generated using workbox
 
 // Caching google fonts
@@ -62,6 +65,37 @@ workboxSW.router.registerRoute(
     }
 );
 
+// Showing custom offline screen for trying to access offline html page
+workboxSW.router.registerRoute(
+    routeData => {
+        return routeData.event.request.headers.get('accept').includes('text/html')
+    }, 
+    args => {
+        return caches.match(args.event.request)
+        .then(response => {
+            if(response) {
+                return response;
+            }
+
+            return fetch(args.event.request)
+            .then(res => {
+                return caches.open(CACHE_DYNAMIC_NAME)
+                .then(cache => {
+                    cache.put(args.event.request.url, res.clone());
+                    return res;
+                })
+            })
+            .catch(err => {
+                // show the default offline.html page
+                return caches.match('/offline.html')
+                .then(response => {
+                    return response;
+                })
+            });
+        })
+    }
+);
+
 workboxSW.precache([
   {
     "url": "404.html",
@@ -85,7 +119,7 @@ workboxSW.precache([
   },
   {
     "url": "service-worker.js",
-    "revision": "08343bc9cb7d711cee874ba502a8c726"
+    "revision": "6e1bb222ea82abf6cfaf1631781aa66a"
   },
   {
     "url": "src/css/app.css",
@@ -129,7 +163,7 @@ workboxSW.precache([
   },
   {
     "url": "sw-base.js",
-    "revision": "79ed7b961d4fba9f761ef381813b9f19"
+    "revision": "5c91dc66c8bf02a940fc21322c036b9e"
   },
   {
     "url": "sw.js",
