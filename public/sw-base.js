@@ -8,7 +8,11 @@ const workboxSW = new self.WorkboxSW();
 workboxSW.router.registerRoute(
     /.*(?:googleapis|gstatic)\.com.*$/, 
     workboxSW.strategies.staleWhileRevalidate({
-        cacheName: 'google-fonts'
+        cacheName: 'google-fonts',
+        cacheExpiration: {
+            maxEntries: 5,
+            maxAgeSeconds: 30 * 24 * 60 * 60
+        }
     })
 );
 

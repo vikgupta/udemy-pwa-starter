@@ -8,7 +8,11 @@ const workboxSW = new self.WorkboxSW();
 workboxSW.router.registerRoute(
     /.*(?:googleapis|gstatic)\.com.*$/, 
     workboxSW.strategies.staleWhileRevalidate({
-        cacheName: 'google-fonts'
+        cacheName: 'google-fonts',
+        cacheExpiration: {
+            maxEntries: 5,
+            maxAgeSeconds: 30 * 24 * 60 * 60
+        }
     })
 );
 
@@ -51,7 +55,7 @@ workboxSW.precache([
   },
   {
     "url": "service-worker.js",
-    "revision": "d4558b6d6a2630927795767ee8be5238"
+    "revision": "8c3e7b79416bdc5aa72b16b703693929"
   },
   {
     "url": "src/css/app.css",
@@ -95,7 +99,7 @@ workboxSW.precache([
   },
   {
     "url": "sw-base.js",
-    "revision": "a03dae0937925f421f7bd1864e22c623"
+    "revision": "87fbbe6abfaa2840861b07eeba077d79"
   },
   {
     "url": "sw.js",
