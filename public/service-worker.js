@@ -3,10 +3,28 @@ importScripts('workbox-sw.prod.v2.1.3.js');
 const workboxSW = new self.WorkboxSW();
 
 // We should use this file to add functionality to the service worker generated using workbox
+
+// Caching google fonts
 workboxSW.router.registerRoute(
     /.*(?:googleapis|gstatic)\.com.*$/, 
     workboxSW.strategies.staleWhileRevalidate({
         cacheName: 'google-fonts'
+    })
+);
+
+// Caching material design library
+workboxSW.router.registerRoute(
+    "https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css", 
+    workboxSW.strategies.staleWhileRevalidate({
+        cacheName: 'material-css'
+    })
+);
+
+// Caching images
+workboxSW.router.registerRoute(
+    /.*(?:firebasestorage\.googleapis)\.com.*$/, 
+    workboxSW.strategies.staleWhileRevalidate({
+        cacheName: 'post-images'
     })
 );
 
@@ -33,7 +51,7 @@ workboxSW.precache([
   },
   {
     "url": "service-worker.js",
-    "revision": "3fa19002eb14a66dd3eea418116b3991"
+    "revision": "d4558b6d6a2630927795767ee8be5238"
   },
   {
     "url": "src/css/app.css",
@@ -77,7 +95,7 @@ workboxSW.precache([
   },
   {
     "url": "sw-base.js",
-    "revision": "4cb95be76c461f2d4d85bba8933dceb4"
+    "revision": "a03dae0937925f421f7bd1864e22c623"
   },
   {
     "url": "sw.js",
