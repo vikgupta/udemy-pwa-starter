@@ -97,3 +97,118 @@ workboxSW.router.registerRoute(
 );
 
 workboxSW.precache([]);
+
+// For push notifications and syncing
+
+self.addEventListener('sync', (evt) => {
+    console.log('[Service Worker] Background syncing')
+    if(evt.tag === 'sync-new-posts') {
+        console.log('[Service Worker] Syncing new post');
+        evt.waitUntil(
+            readAllData('sync-posts')
+            .then(data => {
+                for( var dt of data) {
+                    var postData = new FormData();
+                    postData.append('id', dt.id);
+                    postData.append('title', dt.title);
+                    postData.append('location', dt.location);
+                    postData.append('lat', dt.rawLocation.lat);
+                    postData.append('long', dt.rawLocation.long);
+                    postData.append('image', dt.picture, dt.id + '.png');
+
+                    fetch('https://us-central1-pwagram-44966.cloudfunctions.net/storePostData', {
+                        method: 'POST',
+                        body: postData
+                    })
+                    .then(response => {
+                        console.log('[Service Worker] Data sync response - ', response);
+
+                        // remove the data from DB
+                        if(response.ok) {
+                            response.json()
+                            .then(respData => {
+                                deleteItemFromStore('sync-posts', respData.id);
+                            })
+                        }
+                    })
+                    .catch(err => {
+                        console.log('[Service Worker] error while syncing data - ', err);
+                    })
+                }
+            })
+        );
+    }
+})
+
+self.addEventListener('notificationclick', (evt) => {
+    var notification = evt.notification;
+    var action = evt.action;
+    if(action === 'confirm') {
+        console.log('Confirm was chosen');
+        evt.waitUntil(
+            clients.matchAll()
+            .then(clis => {
+                var client = clis.find(c => {
+                    return c.visibilityState === 'visible';
+                })
+
+                console.log('Client is - ', client);
+                if(client !== undefined) {
+                    client.navigate(notification.data.url);
+                    client.focus();
+                } else {
+                    clients.openWindow(notification.data.url);
+                }
+            })
+        );
+    } else if (action === 'cancel') {
+        console.log('Cancel was chosen');
+    }
+
+    // Better to close the notification since on some OSes, it's not done by default
+    notification.close();
+})
+
+self.addEventListener('notificationclose', (evt) => {
+    console.log('[Service Worker] Notification was closed - ', evt);
+})
+
+self.addEventListener('push', evt => {
+    console.log('Push notification received');
+
+    var data = {title: 'New', content: 'Something happened!', openUrl: '/'};
+    if(evt.data) {
+        data = JSON.parse(evt.data.text());
+    }
+
+    var options = {
+        body: data.content,
+        icon: '/src/images/icons/app-icon-96x96.png',
+        image: '/src/images/sf-boat.jpg',
+        dir: 'ltr', // direction is left to right
+        lang: 'en-US',
+        vibrate: [100, 50, 200],
+        badge: '/src/images/icons/app-icon-96x96.png',
+        tag: 'confirm-notification',
+        renotify: true,
+        actions: [
+          {
+            action: 'confirm',
+            title: 'OK',
+            icon: '/src/images/icons/app-icon-96x96.png'
+          },
+          {
+            action: 'cancel',
+            title: 'Cancel',
+            icon: '/src/images/icons/app-icon-96x96.png'
+          }
+        ],
+        data: {
+            url: data.openUrl
+        }
+    }
+
+    evt.waitUntil(
+        self.registration.showNotification(data.title, options)
+    )
+})
