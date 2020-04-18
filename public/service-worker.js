@@ -1,4 +1,6 @@
 importScripts('workbox-sw.prod.v2.1.3.js');
+importScripts('/src/js/idb.js');
+importScripts('/src/js/utility.js');
 
 const workboxSW = new self.WorkboxSW();
 
@@ -32,6 +34,34 @@ workboxSW.router.registerRoute(
     })
 );
 
+// Own handler for IndexedDB - need custom handler here
+workboxSW.router.registerRoute(
+    "https://pwagram-44966.firebaseio.com/posts.json", 
+    args => {
+        return fetch(args.event.request)
+        .then(response => {
+            // Use the indexeddb to store the data
+            var clonedResponse = response.clone();
+
+            // Let's clear the cached data before creating new, since data in backend db would have changed
+            clearAllData('posts')
+            .then(() => {
+                return clonedResponse.json();
+            })
+            .then(data => {
+                for(var key in data) {
+                    writeData('posts', data[key]);
+                    // .then(() => {
+                    //     deleteItemFromStore('posts', key);  // Just for testing - will be commented out after testing
+                    // });
+                }
+            })
+
+            return response;
+        })
+    }
+);
+
 workboxSW.precache([
   {
     "url": "404.html",
@@ -55,7 +85,7 @@ workboxSW.precache([
   },
   {
     "url": "service-worker.js",
-    "revision": "8c3e7b79416bdc5aa72b16b703693929"
+    "revision": "08343bc9cb7d711cee874ba502a8c726"
   },
   {
     "url": "src/css/app.css",
@@ -99,7 +129,7 @@ workboxSW.precache([
   },
   {
     "url": "sw-base.js",
-    "revision": "87fbbe6abfaa2840861b07eeba077d79"
+    "revision": "79ed7b961d4fba9f761ef381813b9f19"
   },
   {
     "url": "sw.js",

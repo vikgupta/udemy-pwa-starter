@@ -1,4 +1,6 @@
 importScripts('workbox-sw.prod.v2.1.3.js');
+importScripts('/src/js/idb.js');
+importScripts('/src/js/utility.js');
 
 const workboxSW = new self.WorkboxSW();
 
@@ -30,6 +32,34 @@ workboxSW.router.registerRoute(
     workboxSW.strategies.staleWhileRevalidate({
         cacheName: 'post-images'
     })
+);
+
+// Own handler for IndexedDB - need custom handler here
+workboxSW.router.registerRoute(
+    "https://pwagram-44966.firebaseio.com/posts.json", 
+    args => {
+        return fetch(args.evt.request)
+        .then(response => {
+            // Use the indexeddb to store the data
+            var clonedResponse = response.clone();
+
+            // Let's clear the cached data before creating new, since data in backend db would have changed
+            clearAllData('posts')
+            .then(() => {
+                return clonedResponse.json();
+            })
+            .then(data => {
+                for(var key in data) {
+                    writeData('posts', data[key]);
+                    // .then(() => {
+                    //     deleteItemFromStore('posts', key);  // Just for testing - will be commented out after testing
+                    // });
+                }
+            })
+
+            return response;
+        })
+    }
 );
 
 workboxSW.precache([]);
