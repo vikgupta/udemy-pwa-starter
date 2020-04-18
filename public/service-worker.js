@@ -1,6 +1,15 @@
 importScripts('workbox-sw.prod.v2.1.3.js');
 
 const workboxSW = new self.WorkboxSW();
+
+// We should use this file to add functionality to the service worker generated using workbox
+workboxSW.router.registerRoute(
+    /.*(?:googleapis|gstatic)\.com.*$/, 
+    workboxSW.strategies.staleWhileRevalidate({
+        cacheName: 'google-fonts'
+    })
+);
+
 workboxSW.precache([
   {
     "url": "404.html",
@@ -21,6 +30,10 @@ workboxSW.precache([
   {
     "url": "offline.html",
     "revision": "84211fbca42d768b5c7840fd266eff26"
+  },
+  {
+    "url": "service-worker.js",
+    "revision": "3fa19002eb14a66dd3eea418116b3991"
   },
   {
     "url": "src/css/app.css",
@@ -64,15 +77,11 @@ workboxSW.precache([
   },
   {
     "url": "sw-base.js",
-    "revision": "a937a2388f57b0c7784e5bcfe62da7d6"
+    "revision": "4cb95be76c461f2d4d85bba8933dceb4"
   },
   {
     "url": "sw.js",
     "revision": "c0a84e6c78f99572ee8937989007389b"
-  },
-  {
-    "url": "workbox-sw.prod.v2.0.0.js",
-    "revision": "7b6749c71e3ba8b786ce6cb65e248ac8"
   },
   {
     "url": "workbox-sw.prod.v2.1.3.js",
